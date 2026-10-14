@@ -1,0 +1,11 @@
+name: KOS Workflow Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm GitHub Actions works
+        run: echo "KOS workflow is working!"
