@@ -11,17 +11,104 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build bootable KOS ISO
+    runs-on: ubuntu-22.04
+    timeout-minutes: 360
+
     steps:
       - name: Download KOS source
         uses: actions/checkout@v4
 
-      - name: Check project files
+      - name: Install Debian Live build tools
         run: |
-          echo "Files in KOS repository:"
-          ls -la
-          echo "Build scripts:"
-          find . -maxdepth 4 -type f \
-            \( -name 'build.sh' -o -name '*.yml' -o -name '*.yaml' \) \
-            -not -path './.git/*'
+          sudo apt-get update
+          sudo apt-get install -y \
+            live-build \
+            debootstrap \
+            squashfs-tools \
+            xorriso \
+            isolinux \
+            syslinux-common \
+            dosfstools \
+            mtools
 
+      - name: Configure KOS desktop packages
+        run: |
+          mkdir -p config/package-lists
+
+          cat > config/package-lists/kos-desktop.list.chroot <<'EOF'
+          live-boot
+          live-config
+          systemd-sysv
+          xfce4
+          xfce4-goodies
+          xfce4-terminal
+          lightdm
+          firefox-esr
+          geany
+          thunar
+          synaptic
+          network-manager
+          sudo
+          dbus-x11
+          desktop-base
+          EOF
+
+      - name: Configure Debian Live
+        run: |
+          sudo lb config \
+            --distribution bookworm \
+            --architectures amd64 \
+            --archive-areas "main contrib non-free non-free-firmware" \
+            --binary-images iso-hybrid \
+            --debian-installer false \
+            --bootappend-live "boot=live components username=user hostname=kos"
+
+      - name: Build KOS ISO
+        run: |
+          sudo lb build
+
+      - name: Find generated ISO
+        id: find_iso
+        run: |
+          ISO_PATH="$(find . -maxdepth 1 -type f -name '*.iso' -print -quit)"
+
+          if [ -z "$ISO_PATH" ]; then
+            echo "ERROR: No ISO was generated."
+            echo "Recent build files:"
+            find . -maxdepth 2 -type f | tail -100
+            exit 1
+          fi
+
+          echo "Found ISO: $ISO_PATH"
+          echo "iso_path=$ISO_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare downloadable KOS ISO
+        run: |
+          mkdir -p release
+          cp "${{ steps.find_iso.outputs.iso_path }}" release/KOS-live-amd64.iso
+          ls -lh release/KOS-live-amd64.iso
+
+      - name: Upload KOS ISO
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: KOS-live-ISO
+          path: release/KOS-live-amd64.iso
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Add download link to build summary
+        run: |
+          echo "# KOS ISO Build" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "The KOS ISO was built and uploaded successfully." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **File:** KOS-live-amd64.iso" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Architecture:** x86_64 / amd64" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Desktop:** XFCE" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Browser:** Firefox ESR" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Code editor:** Geany" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Software manager:** Synaptic" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "[Open this workflow run's Artifacts section](${{ steps.upload.outputs.artifact-url }})" >> "$GITHUB_STEP_SUMMARY"
