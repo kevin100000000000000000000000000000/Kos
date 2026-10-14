@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=KOS Code
+Comment=Write code with the KOS coding platform
+Exec=geany
+Icon=geany
+Terminal=false
+Categories=Development;IDE;

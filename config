@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+lb config noauto \
+  --mode debian \
+  --distribution trixie \
+  --architectures amd64 \
+  --binary-images iso-hybrid \
+  --archive-areas "main contrib non-free-firmware" \
+  --debian-installer live \
+  --bootappend-live "boot=live components username=kos hostname=kos quiet splash" \
+  --iso-application "KOS" \
+  --iso-volume "KOS_LIVE" \
+  --apt-recommends true \
+  "${@}"

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=KOS Software
+Comment=Install and manage Debian packages
+Exec=sh -c 'pkexec synaptic || synaptic'
+Icon=synaptic
+Terminal=false
+Categories=System;PackageManager;

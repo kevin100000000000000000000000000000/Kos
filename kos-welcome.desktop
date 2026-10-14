@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Welcome to KOS
+Comment=KOS first-run guide
+Exec=firefox-esr file:///usr/share/kos/welcome.html
+Icon=computer
+Terminal=false
+Categories=System;

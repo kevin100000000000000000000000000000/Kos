@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=KOS Files
+Comment=Browse files and folders
+Exec=thunar
+Icon=system-file-manager
+Terminal=false
+Categories=System;FileManager;

@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+# Add branded wallpaper and make it the default XFCE background.
+mkdir -p /usr/share/backgrounds/kos
+if [ -f /usr/share/backgrounds/kos/kos-wallpaper.svg ]; then
+  chmod 644 /usr/share/backgrounds/kos/kos-wallpaper.svg
+fi
+# Install desktop launchers into the default live user's desktop when possible.
+mkdir -p /etc/skel/Desktop
+for app in kos-browser kos-code kos-files kos-software kos-settings kos-welcome; do
+  if [ -f "/usr/share/applications/${app}.desktop" ]; then
+    cp "/usr/share/applications/${app}.desktop" "/etc/skel/Desktop/${app}.desktop"
+    chmod 755 "/etc/skel/Desktop/${app}.desktop"
+  fi
+done
