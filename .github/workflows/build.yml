@@ -3,6 +3,9 @@ name: Build KOS ISO
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
